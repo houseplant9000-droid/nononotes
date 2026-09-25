@@ -1,0 +1,30 @@
+name: Compile Notes
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: pip install groq requests beautifulsoup4
+      - name: Run
+        env:
+          GROQ_KEY: ${{ secrets.GROQ_KEY }}
+        run: python compiler.py
+      - name: Commit
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -A
+          git commit -m "notes $(date)" || echo "no changes"
+          git push
